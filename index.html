@@ -25,38 +25,58 @@
     </nav>
   </header>
   <div class="container">
-    <div>
-      <h1>Savourez mes recettes</h1>
-      <p>Votre assistante culinaire, pour transformer chaque repas en plaisir."</p>
-    </div>
-    <div>
-      <input type="text" placeholder="Rechercher une recette.... "><i class="fa-solid fa-magnifying-glass"></i>
-    </div>
-    <div>
-      
-      <select name="" id="">
-        <option value="">Tous les pays</option>
-      </select>
-    </div>
-    <div>
-      <button><i class="fa-solid fa-plus"></i>  Ajouter une recette</button>
-      <button><i class="fa-solid fa-gift"></i> Recette surprise</button>
-    </div>
-    <div>
-      <h1>Explorez les cuisines du monde</h1>
-      <div>
-        <button><i class="fa-solid fa-utensils"></i>Plats Traditionnels</button>
-        <button>🍔Fast-food</button>
-        <button>🍰Desserts</button>
+    <div class="main-container">
+       <div>
+           <h1>Savourez mes recettes</h1>
+            <p>Votre assistante culinaire, <br> pour transformer chaque repas en plaisir</p>
+         <div class="search-bar">
+           <div class="input-container">
+             <input type="text" placeholder="Rechercher une recette....">
+             <i class="fa-solid fa-magnifying-glass"></i>
+           </div>
+        </div>
+        <div class="ajout">
+          <button class="active"><i class="fa-solid fa-plus"></i>  Ajouter une recette</button>
+          <button><i class="fa-solid fa-gift"></i> Recette surprise</button>
       </div>
+       </div>
+       <div>
+        <div class="btns">
+          <h2>Explorez les cuisines du monde</h2>
+           <div class="btn-group">
+            <button id="btn-traditionnels">🍽️ Plats Traditionnels</button>
+            <button id="btn-fastfood">🍔 Fast-food</button>
+            <button id="btn-desserts">🍰 Desserts</button>
+          </div>
+        </div>
+         <button class="Planificateur">
+          <h3>Planificateur de plats</h3>
+          <p>Organisez vos plats de la semaine</p>
+        </button>
+       </div>
+      </div>
+  </div> 
+<div class="plats-container" id="plats-container" style="display: none;">
+  <h3 id="category-title"></h3>
+  <div class="plats-grid" id="plats-grid"></div>
+</div>
+<div class="detail-container" id="detail-container" style="display: none;">
+  <button id="btn-close-detail" style="align-self: flex-end; margin-bottom: 10px;">✖ Fermer</button>
+  <h3 id="meal-name"></h3>
+  <div class="detail-content">
+    <div class="ingredients">
+      <h4>Ingrédients</h4>
+      <ul id="ingredients-list"></ul>
     </div>
-    <div>
-      <button>
-         <h3>Planificateur de plats</h3>
-       <p>Organisez vos plats de la semaine</p>
-      </button>
+    <div class="preparation">
+      <h4>Préparation</h4>
+      <p id="meal-instructions"></p>
     </div>
   </div>
+</div>
+  <div id="video-container"></div>
+
+
 </body>
  <script src="script.js"></script>
 </html>
