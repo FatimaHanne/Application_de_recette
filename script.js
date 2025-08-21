@@ -1,4 +1,4 @@
-// Sélecteurs
+// -------------------- Sélecteurs --------------------
 const container = document.getElementById('plats-container');
 const title = document.getElementById('category-title');
 const grid = document.getElementById('plats-grid');
@@ -7,13 +7,33 @@ const detailContainer = document.getElementById('detail-container');
 const mealNameEl = document.getElementById('meal-name');
 const ingredientsList = document.getElementById('ingredients-list');
 const instructionsEl = document.getElementById('meal-instructions');
-const btnCloseDetail = document.getElementById('btn-close-detail');
 const videoContainer = document.getElementById('video-container');
+const btnCloseDetail = document.getElementById('btn-close-detail');
 
+// -------------------- Fonctions utilitaires --------------------
 function clearGrid() {
   grid.innerHTML = '';
 }
 
+// Traduction gratuite via Google Translate
+async function translateToFrench(text) {
+  try {
+    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
+    const data = await response.json();
+    return data[0].map(item => item[0]).join('');
+  } catch (error) {
+    console.error("Erreur traduction :", error);
+    return text;
+  }
+}
+
+// Simplifie les instructions pour les rendre lisibles
+function simplifyInstructions(text) {
+  const sentences = text.split(/(?<=\.)\s+/);
+  return sentences.map(s => s.trim()).join(" ");
+}
+
+// Affichage des plats
 function afficherPlats(plats, categoryEmoji, categoryName) {
   container.style.display = 'block';
   detailContainer.style.display = 'none';
@@ -23,48 +43,19 @@ function afficherPlats(plats, categoryEmoji, categoryName) {
   plats.forEach(plat => {
     const platCard = document.createElement('div');
     platCard.className = 'plat-card';
-      const imgSrc = plat.Image || platsImages[plat.mealName]|| 'images/default.png';
+    const imgSrc = plat.Image || platsImages?.[plat.mealName] || 'images/default.png';
     platCard.innerHTML = `
       <img src="${imgSrc}" alt="${plat.nom}" class="plat-image">
       <h4>${plat.nom}</h4>
     `;
-
-    // Au clic, fetch et afficher détails
     platCard.addEventListener('click', () => {
       afficherDetailsPlat(plat.mealName);
     });
-
     grid.appendChild(platCard);
   });
 }
-// Cache en mémoire + localStorage
-const translationCache = JSON.parse(localStorage.getItem("translationCache") || "{}");
 
-// Extrait un résumé d'environ maxChars caractères du texte fourni
-// function extraireResume(instructions, maxChars = 450) {
-//   if (!instructions) return '';
-
-//   const phrases = instructions.match(/[^\.!\?]+[\.!\?]+/g) || [];
-//   let resume = '';
-//   for (const phrase of phrases) {
-//     if ((resume + phrase).length <= maxChars) {
-//       resume += phrase.trim() + ' ';
-//     } else {
-//       break;
-//     }
-//   }
-//   return resume.trim() || instructions.slice(0, maxChars) + '...';
-// }
-
-// Fonction robuste pour extraire l'ID vidéo YouTube depuis différentes formes d'URL
-// function extraireVideoId(url) {
-//   const regex = /(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/))([\w-]{11})/;
-//   const match = url.match(regex);
-//   return match ? match[1] : null;
-  
-// }
-
-// Fonction pour afficher les plats d'une catégorie en utilisant l'API
+// Affichage depuis l'API par catégorie
 async function afficherPlatsDepuisAPI(category, categoryEmoji, categoryName) {
   container.style.display = 'block';
   detailContainer.style.display = 'none';
@@ -72,7 +63,6 @@ async function afficherPlatsDepuisAPI(category, categoryEmoji, categoryName) {
   clearGrid();
 
   try {
-    // Exemple : on utilise filter.php?c= pour récupérer une catégorie complète
     const response = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(category)}`);
     const data = await response.json();
 
@@ -81,7 +71,6 @@ async function afficherPlatsDepuisAPI(category, categoryEmoji, categoryName) {
       return;
     }
 
-    // Afficher chaque plat comme une carte
     data.meals.forEach(meal => {
       const platCard = document.createElement('div');
       platCard.className = 'plat-card';
@@ -89,12 +78,9 @@ async function afficherPlatsDepuisAPI(category, categoryEmoji, categoryName) {
         <img src="${meal.strMealThumb}" alt="${meal.strMeal}" class="plat-image">
         <h4>${meal.strMeal}</h4>
       `;
-
-      // Au clic : afficher les détails complets du plat
       platCard.addEventListener('click', () => {
-        afficherDetailsPlat(meal.strMeal); // ta fonction existante
+        afficherDetailsPlat(meal.strMeal);
       });
-
       grid.appendChild(platCard);
     });
 
@@ -103,10 +89,21 @@ async function afficherPlatsDepuisAPI(category, categoryEmoji, categoryName) {
   }
 }
 
-// Quand on clique sur un plat, on récupère ses détails depuis l'API
+// Affichage vidéo YouTube
+function afficherVideoYoutube(youtubeUrl) {
+  if (youtubeUrl) {
+    const videoId = youtubeUrl.split('v=')[1];
+    videoContainer.innerHTML = `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
+    videoContainer.style.display = "block";
+  } else {
+    videoContainer.innerHTML = "";
+    videoContainer.style.display = "none";
+  }
+}
+
+// Affichage des détails d'un plat
 async function afficherDetailsPlat(mealName) {
   try {
-    // Requête API pour chercher le plat par son nom
     const response = await fetch(
       `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(mealName)}`
     );
@@ -117,42 +114,59 @@ async function afficherDetailsPlat(mealName) {
       return;
     }
 
-    const meal = data.meals[0]; // Le premier résultat
-
-    // Afficher nom du plat
+    const meal = data.meals[0];
     mealNameEl.textContent = meal.strMeal;
 
-    // Liste des ingrédients
+    // Ingrédients
     ingredientsList.innerHTML = "";
+    const ingredientsArray = [];
     for (let i = 1; i <= 20; i++) {
       const ingredient = meal[`strIngredient${i}`];
       const measure = meal[`strMeasure${i}`];
       if (ingredient && ingredient.trim() !== "") {
-        const li = document.createElement("li");
-        li.textContent = `${measure ? measure : ""} ${ingredient}`;
-        ingredientsList.appendChild(li);
+        ingredientsArray.push(`${measure ? measure : ""} ${ingredient}`);
       }
     }
+    const ingredientsFR = await translateToFrench(ingredientsArray.join(", "));
+    ingredientsFR.split(", ").forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      ingredientsList.appendChild(li);
+    });
 
     // Instructions
-    instructionsEl.textContent = meal.strInstructions;
+    const simplifiedInstructions = simplifyInstructions(meal.strInstructions);
+    const instructionsFR = await translateToFrench(simplifiedInstructions);
+    instructionsEl.textContent = instructionsFR;
 
-    // Afficher la section détails
-    container.style.display = "none"; // cacher la liste
-    detailContainer.style.display = "block"; // afficher le détail
+    // Vidéo
+    afficherVideoYoutube(meal.strYoutube);
+
+    // Afficher détails
+    container.style.display = "none";
+    detailContainer.style.display = "block";
 
   } catch (error) {
     console.error("Erreur API:", error);
     alert("Impossible de récupérer les informations.");
   }
 }
-// Boutons pour afficher depuis l’API
+
+// -------------------- Événements boutons --------------------
 document.getElementById('btn-traditionnels').addEventListener('click', () => {
-  afficherPlatsDepuisAPI("Beef", '🍽️', 'Plats Traditionnels'); // exemple catégorie : "Beef"
+  afficherPlatsDepuisAPI("Beef", '🍽️', 'Plats Traditionnels');
 });
 document.getElementById('btn-fastfood').addEventListener('click', () => {
-  afficherPlatsDepuisAPI("Chicken", '🍔', 'Fast-food'); // exemple catégorie : "Chicken"
+  afficherPlatsDepuisAPI("Chicken", '🍔', 'Fast-food');
 });
 document.getElementById('btn-desserts').addEventListener('click', () => {
-  afficherPlatsDepuisAPI("Dessert", '🍰', 'Desserts'); // catégorie officielle Dessert
+  afficherPlatsDepuisAPI("Dessert", '🍰', 'Desserts');
+});
+
+// -------------------- Bouton fermeture détails --------------------
+btnCloseDetail.addEventListener('click', () => {
+  detailContainer.style.display = "none";
+  videoContainer.innerHTML = ""; // Supprime vidéo à la fermeture
+  videoContainer.style.display = "none";
+  container.style.display = "block";
 });
