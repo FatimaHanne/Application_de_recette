@@ -9,11 +9,11 @@
 </head>
 <body>
   <header>
-   <img src="images/logo.png" alt="logo">
+  <h1>CuisineApp</h1>
     <nav>
       <ul>
         <li>
-          <i class="fa-solid fa-house" style="font-size: 15px;"></i><a href="">Accueil</a>
+          <i class="fa-solid fa-house " ></i><a href="" class="active">Accueil</a>
         </li>
         <li>
           <i class="fa-solid fa-star"></i><a href="">Favoris</a>
@@ -27,7 +27,7 @@
   <div class="container">
     <div class="main-container">
        <div>
-           <h1>Savourez mes recettes</h1>
+           <h1>Savourez <span>mes recettes</span></h1>
             <p>Votre assistante culinaire, <br> pour transformer chaque repas en plaisir</p>
          <div class="search-bar">
            <div class="input-container">
@@ -36,7 +36,7 @@
            </div>
         </div>
         <div class="ajout">
-          <button id="btn-ajout" class="active">
+          <button id="btn-ajout" >
             <i class="fa-solid fa-plus"></i> Ajouter une recette
           </button>
           <button id="btn-surprise">
@@ -66,7 +66,7 @@
 </div>
 <div class="detail-container" id="detail-container" style="display: none; flex-direction: column;">
   <!-- Bouton fermer -->
-  <button id="btn-close-detail" style="align-self: flex-end; margin-bottom: 10px;">✖ Fermer</button>
+  <button id="btn-close-detail" style="align-self: flex-end; margin-bottom: 10px;">Retour</button>
   
   <!-- Nom du plat -->
   <h3 id="meal-name"></h3>
