@@ -64,9 +64,17 @@
   <h3 id="category-title"></h3>
   <div class="plats-grid" id="plats-grid"></div>
 </div>
-<div class="detail-container" id="detail-container" style="display: none;">
+<div class="detail-container" id="detail-container" style="display: none; flex-direction: column;">
+  <!-- Bouton fermer -->
   <button id="btn-close-detail" style="align-self: flex-end; margin-bottom: 10px;">✖ Fermer</button>
+  
+  <!-- Nom du plat -->
   <h3 id="meal-name"></h3>
+   <span id="meal-country" style="font-weight: normal; font-size: 0.9em; color: gray;"></span>
+  <!-- Image du plat -->
+  <img id="meal-image" src="" alt="Image du plat" style="width: 100%; max-width: 400px; border-radius: 8px; margin-bottom: 15px;">
+
+  <!-- Contenu recette -->
   <div class="detail-content">
     <div class="ingredients">
       <h4>Ingrédients</h4>
@@ -78,6 +86,7 @@
     </div>
   </div>
 </div>
+
   <div id="video-container"></div>
 </body>
  <script src="script.js"></script>

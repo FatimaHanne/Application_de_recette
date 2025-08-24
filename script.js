@@ -5,19 +5,20 @@ const grid = document.getElementById('plats-grid');
 const btnPlanificateur = document.querySelector(".Planificateur");
 const detailContainer = document.getElementById('detail-container');
 const mealNameEl = document.getElementById('meal-name');
+const mealCountryEl = document.getElementById('meal-country'); // pour le pays
 const ingredientsList = document.getElementById('ingredients-list');
 const instructionsEl = document.getElementById('meal-instructions');
 const videoContainer = document.getElementById('video-container');
 const btnCloseDetail = document.getElementById('btn-close-detail');
 const searchInput = document.querySelector('.search-bar input');
 const btnSurprise = document.getElementById('btn-surprise');
+const mealImageEl = document.getElementById('meal-image');
 
 // -------------------- Fonctions utilitaires --------------------
 function clearGrid() {
   grid.innerHTML = '';
 }
 
-// Traduction gratuite via Google Translate
 async function translateToFrench(text) {
   try {
     const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
@@ -29,13 +30,11 @@ async function translateToFrench(text) {
   }
 }
 
-// Simplifie les instructions pour les rendre lisibles
 function simplifyInstructions(text) {
   const sentences = text.split(/(?<=\.)\s+/);
   return sentences.map(s => s.trim()).join(" ");
 }
 
-// Affichage vidéo YouTube
 function afficherVideoYoutube(youtubeUrl) {
   if (youtubeUrl) {
     const videoId = youtubeUrl.split('v=')[1];
@@ -69,7 +68,6 @@ function afficherPlats(plats, categoryEmoji, categoryName) {
   });
 }
 
-// Affichage depuis l'API par catégorie
 async function afficherPlatsDepuisAPI(category, categoryEmoji, categoryName) {
   container.style.display = 'block';
   detailContainer.style.display = 'none';
@@ -79,7 +77,6 @@ async function afficherPlatsDepuisAPI(category, categoryEmoji, categoryName) {
   try {
     const response = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(category)}`);
     const data = await response.json();
-
     if (!data.meals) {
       grid.innerHTML = "<p>Aucun plat trouvé.</p>";
       return;
@@ -115,8 +112,13 @@ async function afficherDetailsPlat(mealName) {
 
     const meal = data.meals[0];
 
-    // Nom
-    mealNameEl.textContent = meal.strMeal;
+    // Nom et pays
+   mealNameEl.textContent = meal.strArea ? `${meal.strMeal} (${meal.strArea})` : meal.strMeal;
+
+
+    // Image
+    mealImageEl.src = meal.strMealThumb;
+    mealImageEl.alt = meal.strMeal;
 
     // Ingrédients
     ingredientsList.innerHTML = "";
@@ -137,27 +139,13 @@ async function afficherDetailsPlat(mealName) {
 
     // Instructions
     const simplifiedInstructions = simplifyInstructions(meal.strInstructions);
-    const instructionsFR = await translateToFrench(simplifiedInstructions);
-    instructionsEl.textContent = instructionsFR;
-
-    // Image
-    const img = document.createElement("img");
-    img.src = meal.strMealThumb;
-    img.alt = meal.strMeal;
-    img.style.width = "100%";
-    img.style.borderRadius = "8px";
-    img.style.marginBottom = "10px";
-
-    detailContainer.innerHTML = "";
-    detailContainer.appendChild(img);
-    detailContainer.appendChild(mealNameEl);
-    detailContainer.appendChild(ingredientsList);
-    detailContainer.appendChild(instructionsEl);
+    instructionsEl.textContent = await translateToFrench(simplifiedInstructions);
 
     // Vidéo
     afficherVideoYoutube(meal.strYoutube);
 
     container.style.display = "none";
+    plannerContainer.style.display = "none"; 
     detailContainer.style.display = "block";
 
   } catch (error) {
@@ -186,7 +174,6 @@ btnPlanificateur.addEventListener("click", () => {
 
 function afficherPlanner() {
   plannerContainer.innerHTML = "<h2>Planificateur de la semaine</h2>";
-
   jours.forEach(jour => {
     const jourDiv = document.createElement("div");
     jourDiv.classList.add("jour");
@@ -221,7 +208,7 @@ function afficherPlanner() {
 
     btnRecette.addEventListener("click", async () => {
       if (select.value) {
-        await afficherRecette(select.value); // traduction activée ici
+        await afficherRecette(select.value); 
       } else {
         alert("Choisis un plat d'abord !");
       }
@@ -234,58 +221,13 @@ function afficherPlanner() {
   });
 }
 
-// -------------------- Afficher recette depuis planner (avec traduction) --------------------
+// -------------------- Afficher recette depuis planner --------------------
 async function afficherRecette(idMeal) {
   try {
     const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${idMeal}`);
     const data = await res.json();
     const meal = data.meals[0];
-
-    container.style.display = "none";
-    plannerContainer.style.display = "none";
-    detailContainer.style.display = "block";
-
-    mealNameEl.textContent = meal.strMeal;
-
-    // Ingrédients traduits
-    ingredientsList.innerHTML = "";
-    const ingredientsArray = [];
-    for (let i = 1; i <= 20; i++) {
-      const ingredient = meal[`strIngredient${i}`];
-      const measure = meal[`strMeasure${i}`];
-      if (ingredient && ingredient.trim() !== "") {
-        ingredientsArray.push(`${measure ? measure : ""} ${ingredient}`);
-      }
-    }
-    const ingredientsFR = await translateToFrench(ingredientsArray.join(", "));
-    ingredientsFR.split(", ").forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = item;
-      ingredientsList.appendChild(li);
-    });
-
-    // Instructions traduites
-    const simplifiedInstructions = simplifyInstructions(meal.strInstructions);
-    const instructionsFR = await translateToFrench(simplifiedInstructions);
-    instructionsEl.textContent = instructionsFR;
-
-    // Image
-    const img = document.createElement("img");
-    img.src = meal.strMealThumb;
-    img.alt = meal.strMeal;
-    img.style.width = "100%";
-    img.style.borderRadius = "8px";
-    img.style.marginBottom = "10px";
-
-    detailContainer.innerHTML = "";
-    detailContainer.appendChild(img);
-    detailContainer.appendChild(mealNameEl);
-    detailContainer.appendChild(ingredientsList);
-    detailContainer.appendChild(instructionsEl);
-
-    // Vidéo
-    afficherVideoYoutube(meal.strYoutube);
-
+    await afficherDetailsPlat(meal.strMeal); 
   } catch (error) {
     console.error("Erreur API:", error);
     alert("Impossible de récupérer les informations.");
@@ -323,7 +265,6 @@ searchInput.addEventListener('input', async () => {
   try {
     const response = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`);
     const data = await response.json();
-
     container.style.display = 'block';
     detailContainer.style.display = 'none';
     clearGrid();
@@ -352,25 +293,31 @@ searchInput.addEventListener('input', async () => {
 });
 
 // -------------------- Recette surprise --------------------
+async function getRandomRecipe() {
+  try {
+    const res = await fetch("https://www.themealdb.com/api/json/v1/1/random.php");
+    const data = await res.json();
+    return data.meals[0];
+  } catch (error) {
+    console.error("Erreur lors de la récupération de la recette surprise :", error);
+    alert("Impossible de récupérer la recette surprise !");
+  }
+}
+
 async function displaySurpriseRecipe(recipe) {
   container.style.display = 'none';
   plannerContainer.style.display = 'none';
   detailContainer.style.display = 'block';
 
-  mealNameEl.textContent = recipe.strMeal;
+ mealNameEl.textContent = recipe.strArea 
+  ? `${recipe.strMeal} (${recipe.strArea})` 
+  : recipe.strMeal;
+  // mealCountryEl.textContent = recipe.strArea ? ` (${recipe.strArea})` : "";
+  mealImageEl.src = recipe.strMealThumb;
+  mealImageEl.alt = recipe.strMeal;
 
-  const btnVoir = document.createElement('button');
-  btnVoir.textContent = "Voir la recette";
-  btnVoir.style.display = 'block';
-  btnVoir.style.marginTop = '10px';
-  btnVoir.style.padding = '8px 12px';
-  btnVoir.style.cursor = 'pointer';
-
-  const detailsDiv = document.createElement('div');
-  detailsDiv.style.display = 'none';
-  detailsDiv.style.marginTop = '10px';
-
-  // Ingrédients traduits
+  // Ingrédients
+  ingredientsList.innerHTML = "";
   const ingredientsArray = [];
   for (let i = 1; i <= 20; i++) {
     const ingredient = recipe[`strIngredient${i}`];
@@ -378,38 +325,14 @@ async function displaySurpriseRecipe(recipe) {
     if (ingredient && ingredient.trim() !== '') ingredientsArray.push(`${measure ? measure : ''} ${ingredient}`);
   }
   const ingredientsFR = await translateToFrench(ingredientsArray.join(", "));
-  const ul = document.createElement('ul');
   ingredientsFR.split(", ").forEach(item => {
     const li = document.createElement('li');
     li.textContent = item;
-    ul.appendChild(li);
+    ingredientsList.appendChild(li);
   });
 
-  // Instructions traduites
   const simplifiedInstructions = simplifyInstructions(recipe.strInstructions);
-  const instructionsFR = await translateToFrench(simplifiedInstructions);
-  const instructions = document.createElement('p');
-  instructions.textContent = instructionsFR;
-
-  detailsDiv.appendChild(ul);
-  detailsDiv.appendChild(instructions);
-
-  btnVoir.addEventListener('click', () => {
-    detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
-  });
-
-  detailContainer.innerHTML = '';
-  const img = document.createElement('img');
-  img.src = recipe.strMealThumb;
-  img.alt = recipe.strMeal;
-  img.style.width = '100%';
-  img.style.borderRadius = '8px';
-  img.style.marginBottom = '10px';
-
-  detailContainer.appendChild(img);
-  detailContainer.appendChild(mealNameEl);
-  detailContainer.appendChild(btnVoir);
-  detailContainer.appendChild(detailsDiv);
+  instructionsEl.textContent = await translateToFrench(simplifiedInstructions);
 
   afficherVideoYoutube(recipe.strYoutube);
 }
