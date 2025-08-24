@@ -12,6 +12,8 @@ const videoContainer = document.getElementById('video-container');
 const btnCloseDetail = document.getElementById('btn-close-detail');
 const searchInput = document.querySelector('.search-bar input');
 const btnSurprise = document.getElementById('btn-surprise');
+const hamburger = document.getElementById('hamburger');
+const navMenu = document.querySelector('nav ul');
 const mealImageEl = document.getElementById('meal-image');
 
 // -------------------- Fonctions utilitaires --------------------
@@ -351,4 +353,12 @@ btnSurprise.addEventListener('click', async () => {
     const recette = JSON.parse(recetteDuJour);
     await displaySurpriseRecipe(recette);
   }
+});
+
+hamburger.addEventListener('click', () => {
+  navMenu.classList.toggle('show');
+  
+  // Mise à jour de l'attribut aria-expanded pour accessibilité
+  const expanded = hamburger.getAttribute('aria-expanded') === 'true';
+  hamburger.setAttribute('aria-expanded', !expanded);
 });
